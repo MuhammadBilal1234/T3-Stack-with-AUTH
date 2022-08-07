@@ -1,9 +1,11 @@
 // src/pages/_app.tsx
+import React, { ReactHTML, ReactPortal, useEffect } from "react";
 import { withTRPC } from "@trpc/next";
 import type { AppRouter } from "../server/router";
 import type { AppType } from "next/dist/shared/lib/utils";
 import superjson from "superjson";
-import { SessionProvider } from "next-auth/react";
+import { SessionProvider, signIn, signOut, useSession } from "next-auth/react";
+import { MantineProvider, Loader, Button } from "@mantine/core";
 import "../styles/globals.css";
 
 const MyApp: AppType = ({
@@ -12,9 +14,67 @@ const MyApp: AppType = ({
 }) => {
   return (
     <SessionProvider session={session}>
-      <Component {...pageProps} />
+      <MantineProvider theme={{ loader: "oval" }}>
+        <Layout>
+          {Component?.auth ? (
+            <Auth>
+              <Component {...pageProps} />
+            </Auth>
+          ) : (
+            <Component {...pageProps} />
+          )}
+        </Layout>
+      </MantineProvider>
     </SessionProvider>
   );
+};
+
+const Header = () => {
+  const { data: session } = useSession();
+
+  const user = session?.user;
+
+  return (
+    <div className="bg-red-400 py-5 flex justify-between items-center px-5">
+      <div>{user ? `Welcome ${user.name}` : `SignIn With Github`}</div>
+      <div>
+        <Button
+          variant="outline"
+          color="blue"
+          radius="md"
+          onClick={() => (user ? signOut() : signIn())}
+        >
+          Sign {user ? `Out` : `In`}
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+const Layout = ({ children }: React.ReactNode | any) => {
+  return (
+    <>
+      <Header />
+      {children}
+    </>
+  );
+};
+
+const Auth = ({ children }: React.ReactNode | any) => {
+  const { data: session, status } = useSession();
+  const isUser = !!session?.user;
+
+  useEffect(() => {
+    if (status === "loading") return;
+
+    if (!isUser) signIn();
+  }, [isUser, status]);
+
+  if (isUser) {
+    return children;
+  }
+
+  return <Loader size={50} />;
 };
 
 const getBaseUrl = () => {
@@ -46,5 +106,5 @@ export default withTRPC<AppRouter>({
   /**
    * @link https://trpc.io/docs/ssr
    */
-  ssr: false,
+  ssr: true,
 })(MyApp);
