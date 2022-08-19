@@ -7,7 +7,7 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "../../../server/db/client";
 import { env } from "../../../env/server.mjs";
 
-console.log(env.GITHUB_ID , env.GITHUB_SECRET)
+console.log(env.GITHUB_ID, env.GITHUB_SECRET);
 
 export const authOptions: NextAuthOptions = {
   // Include user.id on session
@@ -24,10 +24,13 @@ export const authOptions: NextAuthOptions = {
   providers: [
     GitHubProvider({
       clientId: env.GITHUB_ID,
-      clientSecret: env.GITHUB_SECRET
-    })
+      clientSecret: env.GITHUB_SECRET,
+    }),
     // ...add more providers here
   ],
+  pages: {
+    signIn: "/auth/signin",
+  },
 };
 
 export default NextAuth(authOptions);

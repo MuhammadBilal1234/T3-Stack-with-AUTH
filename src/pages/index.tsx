@@ -1,7 +1,7 @@
 import { getSession, useSession } from "next-auth/react";
 import { Loader } from "@mantine/core";
-import Router from "next/router";
-import { useEffect } from "react";
+import { GetServerSideProps } from "next";
+import Link from "next/link";
 
 const Home: any = () => {
   const { data: session, status } = useSession();
@@ -11,11 +11,16 @@ const Home: any = () => {
   }
 
   if (!session) {
-    <div>Please Sign In to Continue to Dashboard</div>;
+    return (
+      <div>
+        Please Sign In to Continue to Dashboard
+        <Link href="/auth/signin">SignIn</Link>
+      </div>
+    );
   }
 };
 
-export async function getServerSideProps(context) {
+export const getServerSideProps: GetServerSideProps = async (context) => {
   const session = await getSession(context);
 
   if (session) {
@@ -30,6 +35,6 @@ export async function getServerSideProps(context) {
   return {
     props: { session },
   };
-}
+};
 
 export default Home;

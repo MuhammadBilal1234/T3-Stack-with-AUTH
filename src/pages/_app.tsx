@@ -3,27 +3,38 @@ import React, { ReactHTML, ReactPortal, useEffect } from "react";
 import { withTRPC } from "@trpc/next";
 import type { AppRouter } from "../server/router";
 import type { AppType } from "next/dist/shared/lib/utils";
+import { AppProps } from "next/app";
 import superjson from "superjson";
 import { SessionProvider, signIn, signOut, useSession } from "next-auth/react";
 import { MantineProvider, Loader, Button } from "@mantine/core";
 import "../styles/globals.css";
+import type { NextComponentType, NextPageContext } from "next";
+import Router from "next/router";
 
-const MyApp: AppType = ({
+type CustomAppProps = {
+  Component: NextComponentType<NextPageContext, any, {}> & { auth?: boolean };
+  pageProps: any;
+};
+
+const MyApp = ({
   Component,
   pageProps: { session, ...pageProps },
+}: {
+  Component: NextComponentType<NextPageContext, any, {}> & { auth?: boolean };
+  pageProps: any;
 }) => {
   return (
     <SessionProvider session={session}>
       <MantineProvider theme={{ loader: "oval" }}>
-        <Layout>
-          {Component?.auth ? (
+        {Component?.auth ? (
+          <Layout>
             <Auth>
               <Component {...pageProps} />
             </Auth>
-          ) : (
-            <Component {...pageProps} />
-          )}
-        </Layout>
+          </Layout>
+        ) : (
+          <Component {...pageProps} />
+        )}
       </MantineProvider>
     </SessionProvider>
   );
@@ -67,7 +78,7 @@ const Auth = ({ children }: React.ReactNode | any) => {
   useEffect(() => {
     if (status === "loading") return;
 
-    if (!isUser) signIn();
+    if (!isUser) Router.push("/Welcome");
   }, [isUser, status]);
 
   if (isUser) {
